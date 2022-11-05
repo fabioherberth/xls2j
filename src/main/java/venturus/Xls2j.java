@@ -1,12 +1,15 @@
 package venturus;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Xls2j {
 
     private static final String NO_ANNOTATION_MESSAGE = "%s will be ignored because doesn't have @Sheet annotation";
+    private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(".xls", ".xlsx", ".xlsm");
     private List<Class<?>> sheets;
 
     public Xls2j() {
@@ -15,6 +18,9 @@ public class Xls2j {
 
     public Object load(String filename) throws Exception {
         System.out.println("Loading " + filename + "...");
+        File file = new File(filename);
+
+        this.validateFile(filename);
 
         for (Class<?> sheet : sheets) {
             if (!sheet.isAnnotationPresent(Sheet.class)) {
@@ -42,6 +48,15 @@ public class Xls2j {
     public Xls2j addSheet(Class<?> sheet) {
         sheets.add(sheet);
         return this;
+    }
+
+    private boolean validateFile(String filename) throws Exception {
+        if (filename == null || filename.equals("")) {
+            throw new Exception("Invalid file name");
+        }
+
+        // TODO! validate extension with ALLOWED_EXTENSIONS
+        return true;
     }
 
 }
