@@ -23,7 +23,6 @@ public class Xls2j {
             }
 
             Sheet config = sheet.getAnnotation(Sheet.class);
-
             System.out.println(String.format("%s -> Tipo %s", config.value(), sheet.getSimpleName()));
 
             for(Field field : sheet.getDeclaredFields()) {
