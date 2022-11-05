@@ -11,7 +11,7 @@ public class Planilha1 {
     @Column(name = "Idade")
     private String idade;
 
-    @Column(name = "Email")
+    @Column(name = "Emails")
     @Split(";")
     private List<String> emails;
 

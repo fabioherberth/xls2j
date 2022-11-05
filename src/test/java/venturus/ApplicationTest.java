@@ -10,9 +10,9 @@ public class ApplicationTest {
         Xls2j parse = new Xls2j();
 
         parse
-            .addSheet(Planilha1.class)
-            .addSheet(Planilha2.class)
-            .addSheet(Planilha3.class)
-            .load("/tmp/file1.xlsx");
+            .addSheet(new Planilha1())
+            .addSheet(new Planilha2())
+            .addSheet(new Planilha3())
+            .load("/tmp/arquivo.xlsx");
     }
 }

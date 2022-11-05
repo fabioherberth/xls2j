@@ -1,22 +1,36 @@
 package venturus;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
-import org.xml.sax.SAXException;
 
 import venturus.exception.FileException;
 
-public interface Loader extends Closeable {
-    void load(final File file) throws FileException;
-    List<String> getSheetNames() throws FileException;
+public interface Loader {
+    /**
+     * Loads file metadata
+     *
+     * @param filename
+     * @throws FileException
+     */
+    void load(final String filename) throws FileException;
+
+    /**
+     * Process the sheets across configurations
+     *
+     * @return
+     */
+    List<Object> process();
+
+    /**
+     * Closes some connections
+     */
+    void close();
+
+    /**
+     * Get the all sheet names
+     *
+     * @return
+     */
+    List<String> getSheetsNames();
 
     // List<SheetParser.Line> getRowsFromSheet(String name);
     // List<String> getFileSheetNames();

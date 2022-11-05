@@ -19,42 +19,65 @@ public class ExcelLoader implements Loader {
 
     private OPCPackage xlsxPackage;
     private XSSFReader xssfReader;
-    private ReadOnlySharedStringsTable sharedStringsTable;
+    private ReadOnlySharedStringsTable sharedStrings;
+    private List<String> sheetsNames;
 
     @Override
-    public void load(final File file) {
-        try {
-            this.xlsxPackage = OPCPackage.open(file, PackageAccess.READ);
-            this.xssfReader = new XSSFReader(this.xlsxPackage);
-            this.sharedStringsTable = new ReadOnlySharedStringsTable(xlsxPackage);
+    public void load(final String filename) throws FileException {
+        Logger.debug("Loading " + filename + "...");
 
-            this.getSheetNames().forEach(Logger::debug);
+        this.validateFileType(filename);
+
+        try {
+            this.xlsxPackage = OPCPackage.open(new File(filename), PackageAccess.READ);
+            this.xssfReader = new XSSFReader(this.xlsxPackage);
+            this.sharedStrings = new ReadOnlySharedStringsTable(xlsxPackage);
+            this.sheetsNames = this.loadSheetsNames();
         } catch (IOException | OpenXML4JException | SAXException e) {
             throw new FileException();
         }
     }
 
     @Override
-    public List<String> getSheetNames() throws FileException  {
+    public List<Object> process() {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public void close() {
         try {
-            List<String> sheets = new ArrayList<>();
-
-            XSSFReader.SheetIterator sheetIterator = (XSSFReader.SheetIterator) this.xssfReader.getSheetsData();
-
-            sheetIterator.forEachRemaining(e -> sheets.add(sheetIterator.getSheetName()));
-
-            return sheets;
-        } catch (InvalidFormatException | IOException e) {
-            throw new FileException();
+            this.xlsxPackage.close();
+        } catch (IOException e) {
+            Logger.error(e.getMessage());
         }
     }
 
     @Override
-    public void close() throws IOException {
-        // if (this.sharedStringsTable != null) {
-        //     this.sharedStringsTable.close();
-        // }
+    public List<String> getSheetsNames() {
+        return this.sheetsNames;
+    }
 
-        this.xlsxPackage.close();
+    private boolean validateFileType(String filename) throws FileException {
+        if (filename == null || filename.equals("")) {
+            throw new FileException();
+        }
+
+        // TODO! validate extension with AllowedTypes enum
+        return true;
+    }
+
+    private List<String> loadSheetsNames() throws FileException {
+        try {
+            List<String> result = new ArrayList<>();
+
+            XSSFReader.SheetIterator sheetIterator = (XSSFReader.SheetIterator) this.xssfReader.getSheetsData();
+
+            sheetIterator.forEachRemaining(e -> result.add(sheetIterator.getSheetName()));
+
+            return result;
+        } catch (InvalidFormatException | IOException e) {
+            throw new FileException();
+        }
     }
 }

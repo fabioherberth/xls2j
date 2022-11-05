@@ -1,35 +1,53 @@
 package venturus;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-import venturus.exception.FileException;
+import venturus.exception.SheetNotFoundException;
 
 public final class Xls2j {
 
     private static final String NO_ANNOTATION_MESSAGE = "%s will be ignored because doesn't have @Sheet annotation";
-    private List<Class<?>> sheets;
+    private List<Object> sheets;
 
     public Xls2j() {
         this.sheets = new ArrayList<>();
     }
 
     public List<Object> load(String filename) throws Exception {
-        this.loadFile(filename);
+        Loader loader = new ExcelLoader();
 
-        for (Class<?> sheet : sheets) {
-            if (!sheet.isAnnotationPresent(Sheet.class)) {
-                Logger.error(String.format(NO_ANNOTATION_MESSAGE, sheet.getSimpleName()));
+        try {
+            loader.load(filename);
+
+            List<Object> result = this.parse(loader);
+
+            return result;
+        } finally {
+            loader.close();
+        }
+    }
+
+    private List<Object> parse(final Loader loader) {
+        List<Object> result = new ArrayList<>();
+
+        for (final Object sheet : sheets) {
+            final Class<?> cls = sheet.getClass();
+
+            if (!cls.isAnnotationPresent(Sheet.class)) {
+                Logger.error(String.format(NO_ANNOTATION_MESSAGE, cls.getSimpleName()));
                 continue;
             }
 
-            Sheet config = sheet.getAnnotation(Sheet.class);
-            Logger.debug(String.format("%s -> Tipo %s", config.value(), sheet.getSimpleName()));
+            Sheet config = cls.getAnnotation(Sheet.class);
+            Logger.debug(String.format("%s -> Tipo %s", config.value(), cls.getSimpleName()));
 
-            for(Field field : sheet.getDeclaredFields()) {
+            if (!loader.getSheetsNames().contains(config.value())) {
+                throw new SheetNotFoundException();
+            }
+
+            for (final Field field : cls.getDeclaredFields()) {
                 field.setAccessible(true);
 
                 if (field.isAnnotationPresent(Column.class)) {
@@ -40,34 +58,12 @@ public final class Xls2j {
             }
         }
 
-        return null;
+        return result;
     }
 
-    public Xls2j addSheet(Class<?> sheet) {
+    public Xls2j addSheet(Object sheet) {
         sheets.add(sheet);
         return this;
-    }
-
-    private FileInputStream loadFile(String filename) {
-        Logger.debug("Loading " + filename + "...");
-
-        this.validateFileType(filename);
-
-        File file = new File(filename);
-
-        Loader loader = new ExcelLoader();
-        loader.load(file);
-
-        return null;
-    }
-
-    private boolean validateFileType(String filename) throws FileException {
-        if (filename == null || filename.equals("")) {
-            throw new FileException();
-        }
-
-        // TODO! validate extension with AllowedTypes enum
-        return true;
     }
 
 }
