@@ -10,15 +10,6 @@ import java.lang.annotation.Target;
 @Target(FIELD)
 @Retention(RUNTIME)
 @Documented
-public @interface Column {
-    int index() default 0;
-
-    String name() default "";
-
-    boolean required() default true;
-
-    /**
-     * Regex validation
-     */
-    String validation() default "";
+public @interface Split {
+    String value() default ",";
 }

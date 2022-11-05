@@ -1,5 +1,7 @@
 package venturus;
 
+import java.util.List;
+
 @Sheet("Planilha 1")
 public class Planilha1 {
 
@@ -10,7 +12,8 @@ public class Planilha1 {
     private String idade;
 
     @Column(name = "Email")
-    private String email;
+    @Split(";")
+    private List<String> emails;
 
     public Planilha1() {
         super();
@@ -32,12 +35,11 @@ public class Planilha1 {
         this.idade = idade;
     }
 
-    public String getEmail() {
-        return email;
+    public List<String> getEmails() {
+        return emails;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setEmails(List<String> emails) {
+        this.emails = emails;
     }
-
 }

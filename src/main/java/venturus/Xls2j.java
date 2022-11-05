@@ -1,35 +1,33 @@
 package venturus;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-public class Xls2j {
+import venturus.exception.FileException;
+
+public final class Xls2j {
 
     private static final String NO_ANNOTATION_MESSAGE = "%s will be ignored because doesn't have @Sheet annotation";
-    private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(".xls", ".xlsx", ".xlsm");
     private List<Class<?>> sheets;
 
     public Xls2j() {
         this.sheets = new ArrayList<>();
     }
 
-    public Object load(String filename) throws Exception {
-        System.out.println("Loading " + filename + "...");
-        File file = new File(filename);
-
-        this.validateFile(filename);
+    public List<Object> load(String filename) throws Exception {
+        this.loadFile(filename);
 
         for (Class<?> sheet : sheets) {
             if (!sheet.isAnnotationPresent(Sheet.class)) {
-                System.err.println(String.format(NO_ANNOTATION_MESSAGE, sheet.getSimpleName()));
+                Logger.error(String.format(NO_ANNOTATION_MESSAGE, sheet.getSimpleName()));
                 continue;
             }
 
             Sheet config = sheet.getAnnotation(Sheet.class);
-            System.out.println(String.format("%s -> Tipo %s", config.value(), sheet.getSimpleName()));
+            Logger.debug(String.format("%s -> Tipo %s", config.value(), sheet.getSimpleName()));
 
             for(Field field : sheet.getDeclaredFields()) {
                 field.setAccessible(true);
@@ -37,7 +35,7 @@ public class Xls2j {
                 if (field.isAnnotationPresent(Column.class)) {
                     Column column = field.getAnnotation(Column.class);
 
-                    System.out.println(String.format("\t%s -> %s", field.getName(), column.name()));
+                    Logger.debug(String.format("\t%s -> %s", field.getName(), column.name()));
                 }
             }
         }
@@ -50,12 +48,25 @@ public class Xls2j {
         return this;
     }
 
-    private boolean validateFile(String filename) throws Exception {
+    private FileInputStream loadFile(String filename) {
+        Logger.debug("Loading " + filename + "...");
+
+        this.validateFileType(filename);
+
+        File file = new File(filename);
+
+        Loader loader = new ExcelLoader();
+        loader.load(file);
+
+        return null;
+    }
+
+    private boolean validateFileType(String filename) throws FileException {
         if (filename == null || filename.equals("")) {
-            throw new Exception("Invalid file name");
+            throw new FileException();
         }
 
-        // TODO! validate extension with ALLOWED_EXTENSIONS
+        // TODO! validate extension with AllowedTypes enum
         return true;
     }
 
